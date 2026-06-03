@@ -41,7 +41,7 @@ export default async (context) => {
             }
 
             const githubRes = await axios.get(
-                "https://api.github.com/repos/xhclintohn/Toxic-v2/commits/main"
+                "https://api.github.com/repos/xhclintohn/Toxic-Bot-H/commits/main"
             );
 
             const latestCommit = githubRes.data;
