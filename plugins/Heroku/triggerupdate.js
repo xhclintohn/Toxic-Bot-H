@@ -53,7 +53,7 @@ export default async (context) => {
                 `https://api.heroku.com/apps/${HEROKU_APP_NAME}/builds`,
                 {
                     source_blob: {
-                        url: "https://github.com/xhclintohn/Toxic-v2/tarball/main",
+                        url: "https://github.com/xhclintohn/Toxic-Bot-H/tarball/main",
                     },
                 },
                 {
