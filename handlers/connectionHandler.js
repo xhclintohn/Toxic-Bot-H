@@ -99,15 +99,15 @@ async function connectionHandler(socket, connectionUpdate, reconnect) {
       try {
         await socket.sendMessage(botJid, {
           text: [
-            '⚠️ *Bot Subscription Expired*',
+            '*Bot Subscription Expired*',
             '',
             'Your Toxic-MD bot subscription has expired!',
             '',
-            '⏳ This bot will be *permanently deleted in 24 hours* unless you renew.',
+            'This bot will be permanently deleted in 24 hours unless you renew.',
             '',
-            '💳 Renew now at: *hosting.toxicx.tech*',
+            'Renew now at: hosting.toxicx.tech',
             '',
-            '_— Toxic Hosting_'
+            '- Toxic Hosting'
           ].join('\n')
         });
       } catch {}
