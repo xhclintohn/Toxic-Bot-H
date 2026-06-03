@@ -96,22 +96,22 @@ async function connectionHandler(socket, connectionUpdate, reconnect) {
     if (!canProceed) return;
 
     if (process.env.EXPIRY_NOTICE === '1') {
-      try {
-        await socket.sendMessage(botJid, {
-          text: [
-            '*Bot Subscription Expired*',
-            '',
-            'Your Toxic-MD bot subscription has expired!',
-            '',
-            'This bot will be permanently deleted in 24 hours unless you renew.',
-            '',
-            'Renew now at: hosting.toxicx.tech',
-            '',
-            '- Toxic Hosting'
-          ].join('\n')
-        });
-      } catch {}
-    }
+        try {
+          await socket.sendMessage(botJid, {
+            text: [
+              '*Bot Subscription Expired*',
+              '',
+              'Your Toxic-MD bot subscription has expired!',
+              '',
+              'This bot will be permanently deleted in 24 hours unless you renew.',
+              '',
+              'Renew now at: hosting.toxicx.tech',
+              '',
+              '- Toxic Hosting'
+            ].join('\n')
+          });
+        } catch {}
+      }
 
     if (!hasSentStartMessage) {
       const isNewUser = !sudoUsers.includes(userId);
