@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 
 {
   const _ebPath = path.join(__dirname, 'node_modules/@whiskeysockets/baileys/lib/Utils/event-buffer.js');
-  const _usPath = path.join(__dirname, 'node_modules/@whiskeysockets/baileys/lib/Socket/usync.js');
+  const _usPath = path.join(__dirname, 'node_modules/@whiskeysockets/baileys/lib/Socket/socket.js');
   let _needsRestart = false;
 
   if (fs.existsSync(_ebPath)) {
@@ -497,7 +497,7 @@ async function startToxic() {
         version = (await _vResp.json()).version;
         if (!Array.isArray(version) || version.length < 3) throw new Error('bad version');
     } catch (_ve) {
-        version = [2, 3000, 1015901307];
+        version = [2, 3000, 1035194821];
         console.log('⚠️ [VERSION] Failed to fetch Baileys version, using fallback:', version.join('.'));
     }
     const { saveCreds, state } = await useMultiFileAuthState(sessionName);
