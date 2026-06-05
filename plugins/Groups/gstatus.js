@@ -8,7 +8,7 @@ export default {
   run: async (context) => {
     const { client, m, prefix, IsGroup, botname } = context;
     const fq = getFakeQuoted(m);
-    
+
     const fmt = (text) => `╭───(    TOXIC-MD    )───\n├ \n├ ${text}\n╰──────────────────☉\n> ©𝐏𝐨𝐰𝐞𝐫𝐞𝐝 𝐁𝐲 𝐱𝐡_𝐜𝐥𝐢𝐧𝐭𝐨ｎ`;
 
     try {
@@ -18,11 +18,16 @@ export default {
       }
 
       let targetGroupJid = null;
+      let inlineText = null;
+
+      const rawArgs = m.body.trim().split(/\s+/);
 
       if (IsGroup) {
         targetGroupJid = m.chat;
+        if (rawArgs.length > 1) {
+          inlineText = rawArgs.slice(1).join(' ').trim() || null;
+        }
       } else {
-        const rawArgs = m.body.trim().split(/\s+/);
         const input = rawArgs[1];
         if (!input) {
           await client.sendMessage(m.chat, { react: { text: '❌', key: m.reactKey } });
@@ -53,6 +58,9 @@ export default {
           await client.sendMessage(m.chat, { react: { text: '❌', key: m.reactKey } });
           return client.sendMessage(m.chat, { text: fmt(`Invalid group link or JID.`), quoted: fq });
         }
+        if (rawArgs.length > 2) {
+          inlineText = rawArgs.slice(2).join(' ').trim() || null;
+        }
       }
 
       await client.sendMessage(m.chat, { react: { text: '⌛', key: m.reactKey } });
@@ -66,11 +74,11 @@ export default {
       if (m.message?.imageMessage) {
         sourceMsg = m.message.imageMessage;
         mediaType = 'image';
-        caption = m.message.imageMessage?.caption || null;
+        caption = inlineText || m.message.imageMessage?.caption || null;
       } else if (m.message?.videoMessage) {
         sourceMsg = m.message.videoMessage;
         mediaType = 'video';
-        caption = m.message.videoMessage?.caption || null;
+        caption = inlineText || m.message.videoMessage?.caption || null;
       } else if (m.message?.audioMessage) {
         sourceMsg = m.message.audioMessage;
         mediaType = 'audio';
@@ -78,19 +86,21 @@ export default {
         if (quoted.imageMessage) {
           sourceMsg = quoted.imageMessage;
           mediaType = 'image';
-          caption = quoted.imageMessage?.caption || null;
+          caption = inlineText || quoted.imageMessage?.caption || null;
         } else if (quoted.videoMessage) {
           sourceMsg = quoted.videoMessage;
           mediaType = 'video';
-          caption = quoted.videoMessage?.caption || null;
+          caption = inlineText || quoted.videoMessage?.caption || null;
         } else if (quoted.audioMessage) {
           sourceMsg = quoted.audioMessage;
           mediaType = 'audio';
         } else if (quoted.conversation) {
-          caption = quoted.conversation;
+          caption = inlineText || quoted.conversation;
         } else if (quoted.extendedTextMessage?.text) {
-          caption = quoted.extendedTextMessage.text;
+          caption = inlineText || quoted.extendedTextMessage.text;
         }
+      } else if (inlineText) {
+        caption = inlineText;
       }
 
       if (!mediaType && !caption) {
@@ -110,30 +120,15 @@ export default {
 
       if (mediaType === 'image') {
         const buffer = await getBuffer(sourceMsg, 'image');
-        await client.sendMessage(targetGroupJid, {
-          image: buffer,
-          caption: caption,
-          contextInfo: { isGroupStatus: true }
-        });
+        await client.sendStatusMention({ image: buffer, caption: caption }, [targetGroupJid]);
       } else if (mediaType === 'video') {
         const buffer = await getBuffer(sourceMsg, 'video');
-        await client.sendMessage(targetGroupJid, {
-          video: buffer,
-          caption: caption,
-          contextInfo: { isGroupStatus: true }
-        });
+        await client.sendStatusMention({ video: buffer, caption: caption }, [targetGroupJid]);
       } else if (mediaType === 'audio') {
         const buffer = await getBuffer(sourceMsg, 'audio');
-        await client.sendMessage(targetGroupJid, {
-          audio: buffer,
-          mimetype: 'audio/mp4',
-          contextInfo: { isGroupStatus: true }
-        });
+        await client.sendStatusMention({ audio: buffer, mimetype: 'audio/mp4', ptt: false }, [targetGroupJid]);
       } else if (caption) {
-        await client.sendMessage(targetGroupJid, {
-          text: caption,
-          contextInfo: { isGroupStatus: true }
-        });
+        await client.sendStatusMention({ text: caption }, [targetGroupJid]);
       }
 
       await client.sendMessage(m.chat, { react: { text: '✅', key: m.reactKey } });
