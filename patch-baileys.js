@@ -6,6 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const baileysBase = path.join(__dirname, 'node_modules', '@whiskeysockets', 'baileys', 'lib', 'Socket');
+const baileysTypes = path.join(__dirname, 'node_modules', '@whiskeysockets', 'baileys', 'lib', 'Types');
 const usyncPath = path.join(baileysBase, 'usync.js');
 
 if (fs.existsSync(usyncPath)) {
@@ -54,9 +55,9 @@ if (fs.existsSync(messagesRecvPath)) {
     let messagesRecv = fs.readFileSync(messagesRecvPath, 'utf8');
     if (!messagesRecv.includes('__PLACEHOLDER_RESEND_PATCH__')) {
         const constDecl = `\n    const placeholderResendCache = config.placeholderResendCache ||\n        new NodeCache({\n            stdTTL: DEFAULT_CACHE_TTLS.MSG_RETRY,\n            useClones: false\n        });`;
-        const allOccurrences = [...messagesRecv.matchAll(/placeholderResendCache/g)];
         const constDeclIndex = messagesRecv.indexOf(constDecl);
         const hasConstDecl = constDeclIndex !== -1;
+        const allOccurrences = [...messagesRecv.matchAll(/placeholderResendCache/g)];
         const appearsBeforeConst = hasConstDecl && allOccurrences.some(m => m.index < constDeclIndex);
         if (hasConstDecl && appearsBeforeConst) {
             messagesRecv = messagesRecv.replace(constDecl, '\n    /* __PLACEHOLDER_RESEND_PATCH__ */');
@@ -70,6 +71,24 @@ if (fs.existsSync(messagesRecvPath)) {
     }
 } else {
     console.log('[patch-baileys] messages-recv.js not found, skipping');
+}
+
+const newsletterPath = path.join(baileysTypes, 'Newsletter.js');
+
+if (fs.existsSync(newsletterPath)) {
+    let newsletter = fs.readFileSync(newsletterPath, 'utf8');
+    if (!newsletter.includes('__QUERY_IDS_PATCH__') && newsletter.includes('export var QueryIds')) {
+        newsletter = newsletter.replace(
+            /\nexport var QueryIds;[\s\S]*?\}\)\(QueryIds \|\| \(QueryIds = \{\}\)\);/,
+            '\n/* __QUERY_IDS_PATCH__ */'
+        );
+        fs.writeFileSync(newsletterPath, newsletter);
+        console.log('[patch-baileys] Newsletter.js duplicate QueryIds removed');
+    } else {
+        console.log('[patch-baileys] Newsletter.js no duplicate QueryIds, skipping');
+    }
+} else {
+    console.log('[patch-baileys] Newsletter.js not found, skipping');
 }
 
 console.log('[patch-baileys] Done');
