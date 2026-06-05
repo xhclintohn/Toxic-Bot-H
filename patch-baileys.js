@@ -76,13 +76,14 @@ if (fs.existsSync(messagesRecvPath)) {
 const newsletterPath = path.join(baileysTypes, 'Newsletter.js');
 
 if (fs.existsSync(newsletterPath)) {
-    const newsletter = fs.readFileSync(newsletterPath, 'utf8');
-    const reExport = 'export { XWAPaths, QueryIds, NewsletterUpdate, NewsletterCreateResponse, NewsletterViewRole, NewsletterMetadata } from \'./Mex.js\';\n';
-    if (!newsletter.includes('from \'./Mex.js\'') && !newsletter.includes('from \"./Mex.js\"')) {
-        fs.writeFileSync(newsletterPath, reExport);
-        console.log('[patch-baileys] Newsletter.js replaced with re-export from Mex.js');
+    let newsletter = fs.readFileSync(newsletterPath, 'utf8');
+    if (newsletter.includes('export var XWAPaths') || newsletter.includes('export var QueryIds')) {
+        newsletter = newsletter.replace(/export var XWAPaths;[\s\S]*?\}\)\(XWAPaths \|\| \(XWAPaths = \{\}\)\);\n/g, '');
+        newsletter = newsletter.replace(/export var QueryIds;[\s\S]*?\}\)\(QueryIds \|\| \(QueryIds = \{\}\)\);\n/g, '');
+        fs.writeFileSync(newsletterPath, newsletter);
+        console.log('[patch-baileys] Newsletter.js duplicate enums removed');
     } else {
-        console.log('[patch-baileys] Newsletter.js already patched, skipping');
+        console.log('[patch-baileys] Newsletter.js no duplicate enums, skipping');
     }
 } else {
     console.log('[patch-baileys] Newsletter.js not found, skipping');
