@@ -36,7 +36,7 @@ const __dirname = dirname(__filename);
 
   if (_needsRestart) {
     const { spawn: _sp } = await import('child_process');
-    _sp(process.execPath, process.argv.slice(1), { stdio: 'inherit', detached: false });
+    _sp(process.execPath, [...process.execArgv, ...process.argv.slice(1)], { stdio: 'inherit', detached: false });
     process.exit(0);
   }
 }
