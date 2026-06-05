@@ -48,5 +48,28 @@ import fs from 'fs';
       console.log('[patch-baileys] event-buffer.js not found, skipping');
   }
 
+  const messagesRecvPath = path.join(baileysBase, 'messages-recv.js');
+
+  if (fs.existsSync(messagesRecvPath)) {
+      let messagesRecv = fs.readFileSync(messagesRecvPath, 'utf8');
+      const constDeclarations = [...messagesRecv.matchAll(/const placeholderResendCache\s*=/g)];
+      if (constDeclarations.length > 1) {
+          let firstFound = false;
+          messagesRecv = messagesRecv.replace(/const placeholderResendCache\s*=\s*[^\n]+\n?/g, (match) => {
+              if (!firstFound) {
+                  firstFound = true;
+                  return match;
+              }
+              return '';
+          });
+          fs.writeFileSync(messagesRecvPath, messagesRecv);
+          console.log('[patch-baileys] messages-recv.js duplicate placeholderResendCache removed');
+      } else {
+          console.log('[patch-baileys] messages-recv.js no duplicate found, skipping');
+      }
+  } else {
+      console.log('[patch-baileys] messages-recv.js not found, skipping');
+  }
+
   console.log('[patch-baileys] Done');
   
