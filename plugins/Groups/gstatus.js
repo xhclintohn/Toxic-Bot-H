@@ -17,25 +17,28 @@ export default {
         return client.sendMessage(m.chat, { text: fmt(`Bot name is not set.`), quoted: fq });
       }
 
+      const bodyStr = (m.body || '').trim();
+      const spaceIdx = bodyStr.indexOf(' ');
+      const afterCmd = spaceIdx !== -1 ? bodyStr.slice(spaceIdx + 1).trim() : '';
+
       let targetGroupJid = null;
       let inlineText = null;
 
-      const rawArgs = m.body.trim().split(/\s+/);
-
       if (IsGroup) {
         targetGroupJid = m.chat;
-        if (rawArgs.length > 1) {
-          inlineText = rawArgs.slice(1).join(' ').trim() || null;
-        }
+        inlineText = afterCmd || null;
       } else {
-        const input = rawArgs[1];
-        if (!input) {
+        if (!afterCmd) {
           await client.sendMessage(m.chat, { react: { text: '❌', key: m.reactKey } });
           return client.sendMessage(m.chat, {
             text: fmt(`Reply to media and provide a group link or JID.\nExample:\n${prefix}gstatus https://chat.whatsapp.com/xxxxx\n${prefix}gstatus 120363@g.us`),
             quoted: fq
           });
         }
+        const parts = afterCmd.split(/\s+/);
+        const input = parts[0];
+        const rest = parts.slice(1).join(' ').trim();
+
         if (input.includes('chat.whatsapp.com')) {
           let code;
           try {
@@ -58,9 +61,8 @@ export default {
           await client.sendMessage(m.chat, { react: { text: '❌', key: m.reactKey } });
           return client.sendMessage(m.chat, { text: fmt(`Invalid group link or JID.`), quoted: fq });
         }
-        if (rawArgs.length > 2) {
-          inlineText = rawArgs.slice(2).join(' ').trim() || null;
-        }
+
+        inlineText = rest || null;
       }
 
       await client.sendMessage(m.chat, { react: { text: '⌛', key: m.reactKey } });
@@ -99,7 +101,7 @@ export default {
         } else if (quoted.extendedTextMessage?.text) {
           caption = inlineText || quoted.extendedTextMessage.text;
         }
-      } else if (inlineText) {
+      } else {
         caption = inlineText;
       }
 
@@ -120,15 +122,27 @@ export default {
 
       if (mediaType === 'image') {
         const buffer = await getBuffer(sourceMsg, 'image');
-        await client.sendStatusMention({ image: buffer, caption: caption }, [targetGroupJid]);
+        await client.sendStatusMention(
+          { image: buffer, ...(caption ? { caption } : {}) },
+          [targetGroupJid]
+        );
       } else if (mediaType === 'video') {
         const buffer = await getBuffer(sourceMsg, 'video');
-        await client.sendStatusMention({ video: buffer, caption: caption }, [targetGroupJid]);
+        await client.sendStatusMention(
+          { video: buffer, ...(caption ? { caption } : {}) },
+          [targetGroupJid]
+        );
       } else if (mediaType === 'audio') {
         const buffer = await getBuffer(sourceMsg, 'audio');
-        await client.sendStatusMention({ audio: buffer, mimetype: 'audio/mp4', ptt: false }, [targetGroupJid]);
-      } else if (caption) {
-        await client.sendStatusMention({ text: caption }, [targetGroupJid]);
+        await client.sendStatusMention(
+          { audio: buffer, mimetype: 'audio/mp4', ptt: false },
+          [targetGroupJid]
+        );
+      } else {
+        await client.sendStatusMention(
+          { text: caption },
+          [targetGroupJid]
+        );
       }
 
       await client.sendMessage(m.chat, { react: { text: '✅', key: m.reactKey } });
