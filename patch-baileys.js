@@ -76,16 +76,13 @@ if (fs.existsSync(messagesRecvPath)) {
 const newsletterPath = path.join(baileysTypes, 'Newsletter.js');
 
 if (fs.existsSync(newsletterPath)) {
-    let newsletter = fs.readFileSync(newsletterPath, 'utf8');
-    if (!newsletter.includes('__QUERY_IDS_PATCH__') && newsletter.includes('export var QueryIds')) {
-        newsletter = newsletter.replace(
-            /\nexport var QueryIds;[\s\S]*?\}\)\(QueryIds \|\| \(QueryIds = \{\}\)\);/,
-            '\n/* __QUERY_IDS_PATCH__ */'
-        );
-        fs.writeFileSync(newsletterPath, newsletter);
-        console.log('[patch-baileys] Newsletter.js duplicate QueryIds removed');
+    const newsletter = fs.readFileSync(newsletterPath, 'utf8');
+    const reExport = 'export { XWAPaths, QueryIds, NewsletterUpdate, NewsletterCreateResponse, NewsletterViewRole, NewsletterMetadata } from \'./Mex.js\';\n';
+    if (!newsletter.includes('from \'./Mex.js\'') && !newsletter.includes('from \"./Mex.js\"')) {
+        fs.writeFileSync(newsletterPath, reExport);
+        console.log('[patch-baileys] Newsletter.js replaced with re-export from Mex.js');
     } else {
-        console.log('[patch-baileys] Newsletter.js no duplicate QueryIds, skipping');
+        console.log('[patch-baileys] Newsletter.js already patched, skipping');
     }
 } else {
     console.log('[patch-baileys] Newsletter.js not found, skipping');
